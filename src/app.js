@@ -1,8 +1,8 @@
 import express from "express";
-import userRouter from "./routes/user.routes.js";
-import ticketRouter from "./routes/ticket.routes.js";
-import eventRouter from "./routes/events.routes.js";
-import sessionRouter from "./routes/sessions.routes.js";
+import usersRouter from "./routes/users.routes.js";
+import ticketsRouter from "./routes/tickets.routes.js";
+import eventsRouter from "./routes/events.routes.js";
+import sessionsRouter from "./routes/sessions.routes.js";
 
 const app = express();
 
@@ -16,9 +16,9 @@ app.get("/api/health", (req, res) => {
 });
 
 // Routers
-app.use("/api/user", userRouter);
-app.use("/api/ticket", ticketRouter);
-app.use("/api/events", eventRouter);
-app.use("/api/sessions", sessionRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/tickets", ticketsRouter);
+app.use("/api/events", eventsRouter);
+app.use("/api/sessions", sessionsRouter);
 
 export default app;

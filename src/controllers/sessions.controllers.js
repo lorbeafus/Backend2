@@ -1,7 +1,10 @@
+import { sessionsService } from "../services/sessions.services.js";
+
 export async function getSession(req, res, next) {
     try {
-        res.json({ message: "Sessions endpoint structure" });
+        const session = await sessionsService.getCurrentSession();
+        res.json(session);
     } catch (error) {
-        next(error);
+        res.status(500).json({ error: "Internal Server Error", message: error.message });
     }
 }
