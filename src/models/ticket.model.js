@@ -9,6 +9,8 @@ const ticketSchema = new Schema({
         type: Types.ObjectId,
         ref: "event"
     },
+
+
 });
 
 export const ticketModel = model("ticket", ticketSchema);

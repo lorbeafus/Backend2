@@ -7,6 +7,7 @@ const eventSchema = new Schema({
     price: Number,
     capacity: Number,
     status: Boolean,
+
 });
 
 export const eventModel = model("event", eventSchema);
