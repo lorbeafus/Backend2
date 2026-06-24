@@ -1,21 +1,24 @@
 import express from "express";
-import { connectDB } from "../database.js";
-import { env } from "./config/env.js";
-import userRouter from "./routers/user.routes.js";
-import ticketRouter from "./routers/ticket.routes.js";
-import eventRouter from "./routers/event.routes.js";
+import userRouter from "./routes/user.routes.js";
+import ticketRouter from "./routes/ticket.routes.js";
+import eventRouter from "./routes/events.routes.js";
+import sessionRouter from "./routes/sessions.routes.js";
+
 const app = express();
 
-app.use("/api/user", userRouter);
-app.use("/api/ticket", ticketRouter);
-app.use("/api/event", eventRouter);
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.listen(env.PORT, () => {
-    connectDB().then(() => {
-        console.log("ok DB");
-    }).catch(err => {
-        console.error("DB connection error:", err);
-    });
-    console.log(`Server is running on port ${env.PORT}`);
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+    res.json({ status: "active", message: "Server is running correctly" });
 });
 
+// Routers
+app.use("/api/user", userRouter);
+app.use("/api/ticket", ticketRouter);
+app.use("/api/events", eventRouter);
+app.use("/api/sessions", sessionRouter);
+
+export default app;
