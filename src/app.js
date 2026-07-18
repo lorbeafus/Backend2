@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import usersRouter from "./routes/users.routes.js";
 import ticketsRouter from "./routes/tickets.routes.js";
 import eventsRouter from "./routes/events.routes.js";
@@ -9,6 +10,7 @@ const app = express();
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

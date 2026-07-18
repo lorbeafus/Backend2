@@ -12,6 +12,10 @@ export class UsersDAO {
     async create(data) {
         return await userModel.create(data);
     }
+
+    async getByEmail(email) {
+        return await userModel.findOne({ email });
+    }
 }
 
 export const usersDao = new UsersDAO();

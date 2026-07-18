@@ -78,7 +78,10 @@ JWT_SECRET=tu_secreto_para_jwt
 | Método | Endpoint | Descripción |
 | :--- | :--- | :--- |
 | **GET** | `/api/health` | Comprobación de estado y salud del servidor |
-| **GET** | `/api/events` | Listar todos los eventos (devuelve lista vacía inicialmente) |
-| **GET** | `/api/sessions` | Estructura base para autenticación y sesiones |
-| **GET** | `/api/user` | Estructura inicial para usuarios |
-| **GET** | `/api/ticket` | Estructura inicial para tickets |
+| **POST** | `/api/sessions/register` | Registro de usuario (valida datos, email único, y hashea contraseña) |
+| **POST** | `/api/sessions/login` | Inicio de sesión (valida credenciales, genera JWT y guarda en cookie HTTP Only) |
+| **GET** | `/api/sessions/current` | Obtener el perfil del usuario autenticado actual (Ruta protegida por JWT) |
+| **POST** | `/api/sessions/logout` | Cerrar sesión (elimina la cookie del token) |
+| **GET** | `/api/events` | Listar todos los eventos |
+| **GET** | `/api/users` | Listado general de usuarios |
+| **GET** | `/api/tickets` | Listado general de tickets |

@@ -12,6 +12,10 @@ export class UsersRepository {
     async create(data) {
         return await usersDao.create(data);
     }
+
+    async getByEmail(email) {
+        return await usersDao.getByEmail(email);
+    }
 }
 
 export const usersRepository = new UsersRepository();
