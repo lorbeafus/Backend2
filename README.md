@@ -10,6 +10,9 @@ Este proyecto es una API REST estructurada por capas con Express y Mongoose para
 * **Node.js** (v24+)
 * **Express** (Framework de servidor web)
 * **MongoDB & Mongoose** (Base de datos NoSQL y modelado de datos)
+* **Passport.js** (Estrategias de autenticación centralizada)
+* **Bcrypt** (Hashing seguro de contraseñas)
+* **JSON Web Token (JWT)** (Tokens de sesión seguros)
 * **Dotenv** (Configuración a través de variables de entorno)
 * **ES Modules (ESM)** (Uso de `import` / `export`)
 
@@ -20,15 +23,15 @@ El proyecto sigue una organización limpia por capas:
 ```text
 TICKETS/
 ├── src/
-│   ├── config/          # Configuración del entorno (env.js)
-│   ├── routes/          # Enrutadores de Express (routers)
+│   ├── config/          # Configuración del entorno (env.js) y Passport (passport.config.js)
+│   ├── routes/          # Enrutadores de Express (users, sessions, events, tickets)
 │   ├── controllers/     # Controladores encargados de la lógica de presentación/HTTP
-│   ├── services/        # Capa de lógica de negocio (vacía inicialmente)
-│   ├── repositories/    # Capa de repositorios para abstracción de datos (vacía inicialmente)
-│   ├── dao/             # Acceso directo a base de datos (Data Access Objects) (vacío inicialmente)
+│   ├── services/        # Capa de lógica de negocio (sessions, users, events, tickets)
+│   ├── repositories/    # Capa de repositorios para abstracción de datos
+│   ├── dao/             # Acceso directo a base de datos (Data Access Objects)
 │   ├── models/          # Modelos de Mongoose (User, Event, Ticket)
-│   ├── middlewares/     # Middlewares intermedios de Express (vacío inicialmente)
-│   ├── utils/           # Utilidades y funciones auxiliares (vacío inicialmente)
+│   ├── middlewares/     # Middlewares de Express (auth.middleware.js, passport.middleware.js)
+│   ├── utils/           # Utilidades y funciones auxiliares (hash.js, jwt.js)
 │   ├── app.js           # Configuración base de Express (middlewares y enrutamiento)
 │   └── server.js        # Punto de arranque del servidor (app.listen y connectDB)
 ├── database.js          # Función de conexión a la base de datos MongoDB
