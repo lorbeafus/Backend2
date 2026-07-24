@@ -12,6 +12,10 @@ export class EventsDAO {
     async create(data) {
         return await eventModel.create(data);
     }
+
+    async update(id, data) {
+        return await eventModel.findByIdAndUpdate(id, data, { new: true });
+    }
 }
 
 export const eventsDao = new EventsDAO();

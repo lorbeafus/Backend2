@@ -12,6 +12,10 @@ export class EventsService {
     async createEvent(data) {
         return await eventsRepository.create(data);
     }
+
+    async updateEvent(id, data) {
+        return await eventsRepository.update(id, data);
+    }
 }
 
 export const eventsService = new EventsService();
