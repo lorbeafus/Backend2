@@ -9,8 +9,8 @@ export class UsersDAO {
         return await userModel.findById(id);
     }
 
-    async create(data) {
-        return await userModel.create(data);
+    async create(userData) {
+        return await userModel.create(userData);
     }
 
     async getByEmail(email) {

@@ -9,12 +9,12 @@ export class EventsService {
         return await eventsRepository.getById(id);
     }
 
-    async createEvent(data) {
-        return await eventsRepository.create(data);
+    async createEvent(eventData) {
+        return await eventsRepository.create(eventData);
     }
 
-    async updateEvent(id, data) {
-        return await eventsRepository.update(id, data);
+    async updateEvent(id, updateData) {
+        return await eventsRepository.update(id, updateData);
     }
 }
 

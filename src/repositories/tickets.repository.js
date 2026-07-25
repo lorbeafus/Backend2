@@ -9,8 +9,8 @@ export class TicketsRepository {
         return await ticketsDao.getById(id);
     }
 
-    async create(data) {
-        return await ticketsDao.create(data);
+    async create(ticketData) {
+        return await ticketsDao.create(ticketData);
     }
 }
 

@@ -9,8 +9,8 @@ export class TicketsService {
         return await ticketsRepository.getById(id);
     }
 
-    async createTicket(data) {
-        return await ticketsRepository.create(data);
+    async createTicket(ticketData) {
+        return await ticketsRepository.create(ticketData);
     }
 }
 

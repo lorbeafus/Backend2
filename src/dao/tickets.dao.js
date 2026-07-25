@@ -9,8 +9,8 @@ export class TicketsDAO {
         return await ticketModel.findById(id).populate("user").populate("event");
     }
 
-    async create(data) {
-        return await ticketModel.create(data);
+    async create(ticketData) {
+        return await ticketModel.create(ticketData);
     }
 }
 

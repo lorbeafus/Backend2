@@ -9,12 +9,12 @@ export class EventsDAO {
         return await eventModel.findById(id);
     }
 
-    async create(data) {
-        return await eventModel.create(data);
+    async create(eventData) {
+        return await eventModel.create(eventData);
     }
 
-    async update(id, data) {
-        return await eventModel.findByIdAndUpdate(id, data, { new: true });
+    async update(id, updateData) {
+        return await eventModel.findByIdAndUpdate(id, updateData, { new: true });
     }
 }
 

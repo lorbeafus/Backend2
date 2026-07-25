@@ -11,9 +11,9 @@ export async function getAll(req, res, next) {
 
 export async function create(req, res, next) {
     try {
-        const { name, data, place, price, capacity, status } = req.body;
+        const { name, date, place, price, capacity, status } = req.body;
 
-        if (!name || !data || !place || price === undefined || capacity === undefined) {
+        if (!name || !date || !place || price === undefined || capacity === undefined) {
             return res.status(400).json({ status: "error", message: "Todos los campos obligatorios deben estar presentes" });
         }
 
@@ -25,7 +25,7 @@ export async function create(req, res, next) {
             return res.status(400).json({ status: "error", message: "La capacidad debe ser mayor a cero" });
         }
 
-        const eventDate = new Date(data);
+        const eventDate = new Date(date);
         const now = new Date();
         if (eventDate <= now) {
             return res.status(400).json({ status: "error", message: "La fecha del evento debe ser futura" });
@@ -34,7 +34,7 @@ export async function create(req, res, next) {
         // organizer is automatically assigned from req.user._id, ignoring body organizer
         const newEvent = await eventsService.createEvent({
             name,
-            data: eventDate,
+            date: eventDate,
             place,
             price,
             capacity,
@@ -48,13 +48,13 @@ export async function create(req, res, next) {
             payload: newEvent,
         });
     } catch (error) {
-        res.status(400).json({ status: "error", message: error.message });
+        res.status(500).json({ status: "error", message: error.message });
     }
 }
 
 export async function update(req, res, next) {
     try {
-        const { name, data, place, price, capacity, status } = req.body;
+        const { name, date, place, price, capacity, status } = req.body;
         const updateData = {};
 
         if (name !== undefined) updateData.name = name;
@@ -75,13 +75,13 @@ export async function update(req, res, next) {
             updateData.capacity = capacity;
         }
 
-        if (data !== undefined) {
-            const eventDate = new Date(data);
+        if (date !== undefined) {
+            const eventDate = new Date(date);
             const now = new Date();
             if (eventDate <= now) {
                 return res.status(400).json({ status: "error", message: "La fecha del evento debe ser futura" });
             }
-            updateData.data = eventDate;
+            updateData.date = eventDate;
         }
 
         const updatedEvent = await eventsService.updateEvent(req.params.id, updateData);
@@ -92,6 +92,6 @@ export async function update(req, res, next) {
             payload: updatedEvent,
         });
     } catch (error) {
-        res.status(400).json({ status: "error", message: error.message });
+        res.status(500).json({ status: "error", message: error.message });
     }
 }

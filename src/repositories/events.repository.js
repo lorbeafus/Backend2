@@ -9,12 +9,12 @@ export class EventsRepository {
         return await eventsDao.getById(id);
     }
 
-    async create(data) {
-        return await eventsDao.create(data);
+    async create(eventData) {
+        return await eventsDao.create(eventData);
     }
 
-    async update(id, data) {
-        return await eventsDao.update(id, data);
+    async update(id, updateData) {
+        return await eventsDao.update(id, updateData);
     }
 }
 

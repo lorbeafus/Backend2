@@ -31,7 +31,7 @@ export async function registerUser(req, res, next) {
             },
         });
     } catch (error) {
-        res.status(400).json({ status: "error", message: error.message });
+        res.status(500).json({ status: "error", message: error.message });
     }
 }
 
@@ -59,7 +59,7 @@ export async function loginUser(req, res, next) {
             message: "Login exitoso",
         });
     } catch (error) {
-        res.status(400).json({ status: "error", message: error.message });
+        res.status(500).json({ status: "error", message: error.message });
     }
 }
 

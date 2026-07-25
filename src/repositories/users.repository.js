@@ -9,8 +9,8 @@ export class UsersRepository {
         return await usersDao.getById(id);
     }
 
-    async create(data) {
-        return await usersDao.create(data);
+    async create(userData) {
+        return await usersDao.create(userData);
     }
 
     async getByEmail(email) {

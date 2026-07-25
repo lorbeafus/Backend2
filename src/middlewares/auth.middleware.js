@@ -45,6 +45,6 @@ export const authorizeEventOwnerOrAdmin = async (req, res, next) => {
         req.event = event;
         next();
     } catch (error) {
-        res.status(400).json({ status: "error", message: error.message });
+        res.status(500).json({ status: "error", message: error.message });
     }
 };

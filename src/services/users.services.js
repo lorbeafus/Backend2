@@ -9,8 +9,8 @@ export class UsersService {
         return await usersRepository.getById(id);
     }
 
-    async createUser(data) {
-        return await usersRepository.create(data);
+    async createUser(userData) {
+        return await usersRepository.create(userData);
     }
 }
 
