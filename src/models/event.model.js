@@ -2,31 +2,49 @@ import { Schema, model } from "mongoose";
 
 const eventSchema = new Schema(
     {
-        name: {
+        title: {
             type: String,
+            required: true,
+            trim: true,
+        },
+        description: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        category: {
+            type: Schema.Types.ObjectId,
+            ref: "Category",
             required: true,
         },
         date: {
             type: Date,
             required: true,
         },
-        place: {
+        location: {
             type: String,
             required: true,
-        },
-        price: {
-            type: Number,
-            required: true,
-            min: 0,
+            trim: true,
+            default: "Online",
         },
         capacity: {
             type: Number,
             required: true,
             min: 1,
         },
+        price: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
         status: {
-            type: Boolean,
-            default: true,
+            type: String,
+            enum: ["draft", "published", "cancelled", "finished"],
+            default: "draft",
+        },
+        level: {
+            type: String,
+            enum: ["beginner", "intermediate", "advanced"],
         },
         organizer: {
             type: Schema.Types.ObjectId,
@@ -39,4 +57,4 @@ const eventSchema = new Schema(
     }
 );
 
-export const eventModel = model("event", eventSchema);
+export const eventModel = model("Event", eventSchema);

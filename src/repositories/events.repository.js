@@ -5,6 +5,14 @@ export class EventsRepository {
         return await eventsDao.getAll();
     }
 
+    async getEventsByFilters(filters, options) {
+        return await eventsDao.getByFilters(filters, options);
+    }
+
+    async countEvents(filters) {
+        return await eventsDao.count(filters);
+    }
+
     async getById(id) {
         return await eventsDao.getById(id);
     }
@@ -19,3 +27,4 @@ export class EventsRepository {
 }
 
 export const eventsRepository = new EventsRepository();
+
