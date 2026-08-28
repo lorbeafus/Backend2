@@ -29,7 +29,7 @@ export class EventsDAO {
     }
 
     async update(id, updateData) {
-        return await eventModel.findByIdAndUpdate(id, updateData, { new: true });
+        return await eventModel.findByIdAndUpdate(id, updateData, { new: true, returnDocument: "after" });
     }
 }
 

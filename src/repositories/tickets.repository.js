@@ -9,8 +9,28 @@ export class TicketsRepository {
         return await ticketsDao.getById(id);
     }
 
+    async getByUser(userId) {
+        return await ticketsDao.getByUser(userId);
+    }
+
+    async getByEvent(eventId) {
+        return await ticketsDao.getByEvent(eventId);
+    }
+
+    async findActiveByUserAndEvent(userId, eventId) {
+        return await ticketsDao.findActiveByUserAndEvent(userId, eventId);
+    }
+
+    async getReservedQuantity(eventId) {
+        return await ticketsDao.getReservedQuantityByEvent(eventId);
+    }
+
     async create(ticketData) {
         return await ticketsDao.create(ticketData);
+    }
+
+    async update(id, updateData) {
+        return await ticketsDao.update(id, updateData);
     }
 }
 
