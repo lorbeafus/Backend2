@@ -1,0 +1,318 @@
+{
+  "info": {
+    "_postman_id": "8f5a1b32-e64b-4c28-98e1-0c58f0e34c21",
+    "name": "Plataforma de Eventos - API Backend (Entrega Final)",
+    "description": "Colección completa de endpoints para la Entrega Final del curso Backend II (Plataforma de Eventos, Inscripciones, Roles, Tickets, Nodemailer y Arquitectura por Capas DAO/Repository/DTO).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Autenticación y Sesiones",
+      "item": [
+        {
+          "name": "Registro - Usuario Común",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Lucas\",\n  \"last_name\": \"Gómez\",\n  \"email\": \"lucas@test.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "register"]
+            }
+          }
+        },
+        {
+          "name": "Registro - Organizador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Martín\",\n  \"last_name\": \"Organizador\",\n  \"email\": \"organizer@test.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"lucas@test.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User (/current)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "current"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Eventos",
+      "item": [
+        {
+          "name": "Listar Eventos (con Filtros y Paginación)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events?status=published&page=1&limit=5&sort=date",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"],
+              "query": [
+                { "key": "status", "value": "published" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "5" },
+                { "key": "sort", "value": "date" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar Evento por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          }
+        },
+        {
+          "name": "Crear Evento (Organizer / Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Workshop Avanzado de Node.js\",\n  \"description\": \"Aprende arquitectura profesional por capas, autenticación con JWT y control de cupos.\",\n  \"category\": \"{{categoryId}}\",\n  \"date\": \"2026-11-20T18:00:00.000Z\",\n  \"location\": \"Online - Stream\",\n  \"capacity\": 30,\n  \"price\": 1500,\n  \"status\": \"published\",\n  \"level\": \"advanced\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          }
+        },
+        {
+          "name": "Modificar Evento (Dueño / Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Workshop Avanzado de Node.js & TypeScript\",\n  \"capacity\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            }
+          }
+        },
+        {
+          "name": "Cambiar Estado de Evento (Dueño / Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Tickets e Inscripciones",
+      "item": [
+        {
+          "name": "Inscribirse a un Evento (POST /api/events/:eid/tickets)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Consultar Mis Tickets (GET /api/tickets/my-tickets)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/my-tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "my-tickets"]
+            }
+          }
+        },
+        {
+          "name": "Ver Inscriptos de Evento (Organizador / Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Cancelar Inscripción (PATCH /api/tickets/:tid/cancel)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "{{ticketId}}", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Usuarios (Admin)",
+      "item": [
+        {
+          "name": "Listar Todos los Usuarios (Solo Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "65f1a2b3c4d5e6f7a8b9c0d1",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "65f1a2b3c4d5e6f7a8b9c0d2",
+      "type": "string"
+    },
+    {
+      "key": "ticketId",
+      "value": "65f1a2b3c4d5e6f7a8b9c0d3",
+      "type": "string"
+    }
+  ]
+}

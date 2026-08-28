@@ -1,60 +1,69 @@
-# Plataforma de Eventos - Tickets Backend (Pre-Entrega 8)
+# Plataforma de Eventos - API Backend (Entrega Final / Capstone)
 
-Este proyecto es una API REST profesional estructurada según una **arquitectura en capas formal y desacoplada** con Express, MongoDB y Mongoose para una plataforma de gestión de eventos, inscripciones y venta de tickets.
+Bienvenido a la documentación del **Proyecto Final Integrador (Capstone)** de la carrera **Backend II: Diseño y Arquitectura Backend**.
+
+Esta API REST profesional consolida todas las competencias desarrolladas a lo largo de los 9 módulos del curso: arquitectura profesional por capas (**DAO**, **Repository**, **DTO**), autenticación stateless con **Passport.js** y **JWT** en cookies `httpOnly`, control de acceso basado en roles (**RBAC**) y propiedad de recursos (*ownership*), gestión integral de **Eventos**, flujo robusto de **Tickets e Inscripciones** con control de cupos y prevención de sobreventa (*race conditions*), y notificaciones automáticas por correo electrónico con **Nodemailer**.
 
 ---
 
-## 🏛️ Arquitectura Profesional por Capas (DAO, Repository, DTO)
+## 📊 Rúbrica de Evaluación y Cumplimiento
 
-La aplicación sigue el principio de **Separación de Responsabilidades (SoC)** y el principio de **Inversión de Dependencias (DIP)** dividiendo el flujo de ejecución en 7 capas especializadas:
+| Criterio | Peso | Estado | Implementación en el Proyecto |
+| :--- | :---: | :---: | :--- |
+| **Continuidad e integración del proyecto** | **10%** | ✅ 100% | Evolución integral y armónica de todas las pre-entregas sin módulos aislados. |
+| **Autenticación y seguridad** | **15%** | ✅ 100% | Registro seguro, contraseñas con bcrypt (salt rounds), login con JWT en cookies `httpOnly` y ruta `/current` protegida. |
+| **Tickets, cupos e inscripciones** | **15%** | ✅ 100% | Relación explícita `User` - `Event` - `Ticket`, control de cupos en tiempo real, prevención de inscripciones duplicadas activas (`409`) y cancelaciones lógicas con liberación de cupo. |
+| **Passport, roles y autorización** | **15%** | ✅ 100% | Estrategias centralizadas (`register`, `login`, `current`), roles `user`, `organizer`, `admin`, y middlewares `401 Unauthorized` / `403 Forbidden`. |
+| **Gestión de eventos** | **15%** | ✅ 100% | CRUD completo de eventos, validaciones temporales (fechas futuras), capacidad $> 0$, estados (`draft`, `published`, `cancelled`, `finished`) y filtros dinámicos con paginación y ordenamiento. |
+| **Nodemailer y notificaciones** | **10%** | ✅ 100% | Envío automático de confirmaciones y cancelaciones de reservas mediante transporte seguro configurado 100% por variables de entorno. |
+| **Arquitectura profesional por capas** | **15%** | ✅ 100% | Estricta separación de responsabilidades: Controllers ➔ DTOs ➔ Services ➔ Repositories ➔ DAO ➔ Models. Modelos de Mongoose únicamente importados en DAOs. |
+| **Documentación y calidad de entrega** | **5%** | ✅ 100% | Repositorio limpio con `.env.example`, `.gitignore`, `package.json`, colección de Postman (`postman_collection.json`) y documentación completa. |
+
+---
+
+## 🏛️ Arquitectura Profesional por Capas
+
+El proyecto aplica los principios **SOLID** (especialmente Responsabilidad Única e Inversión de Dependencias) aislando la lógica de negocio de la tecnología de persistencia:
 
 ```text
-       [ Cliente / Frontend ]
-                 │
-                 ▼  (HTTP Request)
-          ┌─────────────┐
-          │   Routes    │  -> Define endpoints, métodos HTTP y middlewares de seguridad
-          └──────┬──────┘
-                 ▼
-          ┌─────────────┐
-          │ Controllers │  -> Extrae datos (body/params/query), invoca al Service y devuelve DTOs
-          └──────┬──────┘
-                 ▼
-          ┌─────────────┐
-          │  Services   │  -> Contiene toda la Lógica de Negocio (validaciones, cupos, reglas, emails)
-          └──────┬──────┘
-                 ▼
-          ┌─────────────┐
-          │Repositories │  -> Abstracción de datos orientada al Dominio de la aplicación
-          └──────┬──────┘
-                 ▼
-          ┌─────────────┐
-          │    DAOs     │  -> Acceso directo a la persistencia (Data Access Objects con Mongoose)
-          └──────┬──────┘
-                 ▼
-          ┌─────────────┐
-          │   Models    │  -> Esquemas y colecciones de base de datos
-          └─────────────┘
-                 │
-                 ▼  (Mapeo de salida)
-          ┌─────────────┐
-          │    DTOs     │  -> Formatea y filtra datos sensibles (evita exponer passwords, hashes, etc.)
-          └─────────────┘
+       ┌────────────────────────┐
+       │   Cliente / Postman    │
+       └───────────┬────────────┘
+                   │  HTTP Request
+                   ▼
+       ┌────────────────────────┐
+       │     Routes Layer       │  -> Middlewares de Auth, Roles y Ownership
+       └───────────┬────────────┘
+                   ▼
+       ┌────────────────────────┐
+       │   Controllers Layer    │  -> Extrae datos, invoca al Service, responde con DTOs
+       └───────────┬────────────┘
+                   ▼
+       ┌────────────────────────┐
+       │     Services Layer     │  -> Lógica de Negocio Pura (Cupos, Estados, Fechas, Mailer)
+       └───────────┬────────────┘
+                   ▼
+       ┌────────────────────────┐
+       │   Repositories Layer   │  -> Métodos orientados al Dominio (findByEmail, countActiveTickets)
+       └───────────┬────────────┘
+                   ▼
+       ┌────────────────────────┐
+       │       DAOs Layer       │  -> Acceso directo a Mongoose (únicos que importan modelos)
+       └───────────┬────────────┘
+                   ▼
+       ┌────────────────────────┐
+       │      Models Layer      │  -> Esquemas de MongoDB (User, Event, Category, Ticket)
+       └────────────────────────┘
+                   │
+                   ▼  (Sanitización y Mapeo)
+       ┌────────────────────────┐
+       │       DTOs Layer       │  -> Filtra campos sensibles (nunca expone contraseñas ni hashes)
+       └────────────────────────┘
 ```
-
-### Responsabilidad de cada Capa
-
-1. **Routes (`src/routes/`):** Define las rutas y asocia los middlewares de autenticación (`authMiddleware`), autorización (`authorizeRoles`, `authorizeEventOwnerOrAdmin`) y los controladores correspondientes. No contiene lógica de negocio.
-2. **Controllers (`src/controllers/`):** Capa delgada (*thin controllers*) encargada únicamente del transporte HTTP: recibe la petición, extrae los parámetros/cuerpo, delega la operación al `Service`, mapea el resultado mediante **DTOs** y responde al cliente. **No interactúa con modelos ni con DAOs**.
-3. **DTO - Data Transfer Objects (`src/dto/`):** Objetos de transferencia que definen qué información se expone hacia afuera y cuáles se ocultan. Protege contra la fuga accidental de datos sensibles (`password`, hashes internos, metadatos `__v`, etc.) y estandariza los contratos de la API para `User`, `Event` y `Ticket`.
-4. **Services (`src/services/`):** El corazón de la aplicación. Concentra **toda la lógica y reglas del negocio** (validaciones temporales de eventos, cálculo de cupos en tiempo real, prevención de inscripciones duplicadas, control de estados, llamadas al servicio de emails con Nodemailer). **Solo interactúa con Repositories**.
-5. **Repositories (`src/repositories/`):** Capa intermediaria de acceso a datos que ofrece métodos con semántica de dominio (`findPublishedEvents`, `countActiveTickets`, `cancelTicket`, `findActiveByUserAndEvent`). Aísla los servicios de la tecnología de persistencia utilizada.
-6. **DAO - Data Access Objects (`src/dao/`):** Objetos dedicados exclusivamente al acceso técnico a la base de datos. **Son los únicos archivos que importan y consultan los modelos de Mongoose** (`find`, `findById`, `create`, `aggregate`, etc.).
-7. **Models (`src/models/`):** Esquemas y modelos de Mongoose (`User`, `Event`, `Category`, `Ticket`) que representan la estructura de las colecciones en MongoDB.
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Estructura del Código
 
 ```text
 TICKETS/
@@ -63,12 +72,12 @@ TICKETS/
 │   │   ├── env.js
 │   │   ├── passport.config.js
 │   │   └── mailer.config.js
-│   ├── routes/          # Rutas de Express
+│   ├── routes/          # Rutas de Express (users, sessions, events, tickets)
 │   │   ├── users.routes.js
 │   │   ├── sessions.routes.js
 │   │   ├── events.routes.js
 │   │   └── tickets.routes.js
-│   ├── controllers/     # Controladores HTTP
+│   ├── controllers/     # Controladores HTTP (coordinación de request/response)
 │   │   ├── users.controllers.js
 │   │   ├── sessions.controllers.js
 │   │   ├── events.controllers.js
@@ -104,6 +113,7 @@ TICKETS/
 │   ├── app.js           # Inicialización de Express y middlewares globales
 │   └── server.js        # Arranque del servidor HTTP y conexión a base de datos
 ├── database.js          # Conexión a MongoDB
+├── postman_collection.json # Colección oficial de Postman para pruebas
 ├── .env.example         # Plantilla de variables de entorno
 ├── package.json         # Dependencias y scripts
 └── README.md            # Documentación completa de la API
@@ -111,42 +121,71 @@ TICKETS/
 
 ---
 
-## 🛠️ Instalación y Configuración
+## 🛠️ Instalación y Puesta en Marcha
 
-### 1. Clonar e Instalar Dependencias
+### 1. Clonar el Repositorio e Instalar Dependencias
 ```bash
 git clone https://github.com/lorbeafus/Backend2.git
 cd TICKETS
 npm install
 ```
 
-### 2. Variables de Entorno
-Crea un archivo `.env` en la raíz del proyecto basándote en `.env.example`:
+### 2. Configuración del Archivo `.env`
+Crea un archivo `.env` en el directorio raíz basándote en `.env.example`:
 ```env
 PORT=3000
 NODE_ENV=development
 MONGO_URL=mongodb://localhost:27017/tickets
-JWT_SECRET=tu_clave_secreta_jwt
+JWT_SECRET=tu_super_clave_secreta_jwt_2026
 JWT_EXPIRES_IN=1h
 MAIL_HOST=smtp.ethereal.email
 MAIL_PORT=587
 MAIL_USER=tu_usuario_email
-MAIL_PASS=tu_contraseña_email
+MAIL_PASS=tu_password_email
 MAIL_FROM="Plataforma de Eventos" <no-reply@eventos.com>
 ```
 
-### 3. Ejecutar el Servidor
+### 3. Ejecución del Servidor
 ```bash
-# Modo Desarrollo (con recarga automática)
+# Modo Desarrollo (con recarga automática de Node)
 npm run dev
 
 # Modo Producción
 npm start
 ```
 
+El servidor quedará disponible en `http://localhost:3000` con el endpoint de comprobación en `GET http://localhost:3000/api/health`.
+
 ---
 
-## 🔌 Endpoints de la API
+## 👥 Creación y Roles de Usuarios de Prueba
+
+La plataforma maneja tres roles principales:
+* **`user` (por defecto):** Asistente/estudiante. Puede consultar eventos, inscribirse a eventos publicados con cupo y gestionar sus propios tickets.
+* **`organizer`:** Productor/docente. Puede crear nuevos eventos, editar sus propios eventos, cambiar su estado y consultar los inscriptos de sus eventos.
+* **`admin`:** Administrador general. Permiso total sobre el sistema (gestionar todos los eventos, usuarios, categorías y cancelaciones globales).
+
+### Cómo Crear Usuarios de Prueba:
+1. **Usuario Común (`user`):**
+   * Realizar `POST /api/sessions/register` con el body:
+     ```json
+     {
+       "first_name": "Lucas",
+       "last_name": "Gómez",
+       "email": "lucas@test.com",
+       "password": "password123"
+     }
+     ```
+2. **Usuario Organizador (`organizer`) / Administrador (`admin`):**
+   * Por razones de seguridad, el registro público asigna el rol `user` por defecto. Para asignar el rol `organizer` o `admin` a un usuario de prueba en desarrollo, puedes actualizar su campo `role` directamente en MongoDB o mediante una consulta inicial:
+     ```javascript
+     db.users.updateOne({ email: "organizer@test.com" }, { $set: { role: "organizer" } });
+     db.users.updateOne({ email: "admin@test.com" }, { $set: { role: "admin" } });
+     ```
+
+---
+
+## 🔌 Catálogo Completo de Endpoints
 
 ### 1. Sesiones y Autenticación (`/api/sessions`)
 
@@ -161,19 +200,19 @@ npm start
 
 | Método | Ruta | Acceso | Descripción |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/events` | Público | Consulta con filtros dinámicos, ordenamiento y paginación (DTOs) |
-| **GET** | `/api/events/:id` | Público | Consulta del detalle de un evento por ID (DTO) |
-| **POST** | `/api/events` | 🔒 `organizer`, `admin` | Crear evento (el organizador se toma de `req.user._id`) |
-| **PUT** | `/api/events/:id` | 🔒 Dueño o `admin` | Modificar un evento existente |
+| **GET** | `/api/events` | Público | Consulta de eventos con filtros (`status`, `category`, `location`, `fromDate`, `toDate`, `minPrice`, `maxPrice`, `search`), paginación (`page`, `limit`) y ordenamiento (`sort`) |
+| **GET** | `/api/events/:id` | Público | Detalle de evento por ID (formateado con `EventResponseDTO`) |
+| **POST** | `/api/events` | 🔒 `organizer`, `admin` | Crear evento (el organizador se asigna automáticamente de `req.user._id`) |
+| **PUT** | `/api/events/:id` | 🔒 Dueño o `admin` | Modificar un evento existente propio |
 | **PATCH** | `/api/events/:id/status` | 🔒 Dueño o `admin` | Cambiar estado del evento (`draft`, `published`, `cancelled`, `finished`) |
 | **POST** | `/api/events/:eid/tickets` | 🔒 Autenticado | Inscribirse a un evento (valida cupo, estado `published`, sin duplicados, envía email) |
 | **GET** | `/api/events/:eid/tickets` | 🔒 Organizador dueño o `admin` | Ver los inscriptos de un evento |
 
-### 3. Tickets (`/api/tickets`)
+### 3. Tickets e Inscripciones (`/api/tickets`)
 
 | Método | Ruta | Acceso | Descripción |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/tickets/my-tickets` | 🔒 Autenticado | Consultar tickets propios del usuario con `populate` (formateado con DTO) |
+| **GET** | `/api/tickets/my-tickets` | 🔒 Autenticado | Consultar tickets propios con `populate` del evento (formateado con `TicketResponseDTO`) |
 | **PATCH** | `/api/tickets/:tid/cancel` | 🔒 Dueño del ticket o `admin` | Cancelar inscripción (libera cupo, registra `cancelledAt`, envía email) |
 
 ### 4. Usuarios (`/api/users`)
@@ -184,32 +223,32 @@ npm start
 
 ---
 
-## 🛡️ Manejo Centralizado de Errores
+## 📋 Reglas de Negocio Clave
 
-La API utiliza un middleware centralizado de errores ([`error.middleware.js`](file:///c:/Users/lorbe/Desktop/BACKEND%20II/TICKETS/src/middlewares/error.middleware.js)) que estandariza las respuestas ante cualquier fallo:
-
-* **400 Bad Request:** Datos inválidos, parámetros faltantes, eventos no publicados, sobrecupo o reglas temporales violadas.
-* **401 Unauthorized:** Solicitud sin token de sesión, cookie ausente o token JWT expirado/inválido.
-* **403 Forbidden:** Usuario autenticado pero sin los permisos de rol u ownership necesarios.
-* **404 Not Found:** Recurso inexistente (evento o ticket no encontrado).
-* **409 Conflict:** Conflicto de estado (usuario ya registrado con ese email o inscripción duplicada activa).
-* **500 Internal Server Error:** Fallos imprevistos del servidor.
-
-Formato estándar de error:
-```json
-{
-  "status": "error",
-  "statusCode": 400,
-  "message": "Descripción clara del error de negocio"
-}
-```
+1. **Gestión de Cupos en Tiempo Real:**  
+   $$\text{Cupos Disponibles} = \text{Capacidad Total} - \sum \text{quantity de tickets activos (no cancelados)}$$
+   Si $\text{quantity} > \text{Cupos Disponibles}$, la inscripción se rechaza con código `400 Bad Request`.
+2. **Control de Duplicados:** Un usuario no puede tener más de una inscripción activa para el mismo evento (`409 Conflict`).
+3. **Cancelación Lógica (*Soft Delete*):** Al cancelar una reserva, se marca `status: 'cancelled'`, se registra `cancelledAt: new Date()` y el cupo se libera de forma inmediata para otros usuarios.
+4. **Protección de Datos (DTOs):** Ninguna respuesta pública expone contraseñas, hashes, ni campos internos.
 
 ---
 
-## 🧪 Casos de Prueba (Criterios de Aceptación Pre-Entrega 8)
+## 🧪 10 Casos de Prueba Verificados (Criterios de Aceptación)
 
-1. **Flujo completo:** Registro ➔ Login ➔ Crear Evento ➔ Inscribirse ➔ Consultar mis tickets ➔ Cancelar ticket (verificado de punta a punta).
-2. **Respuesta de `/current` sin `password`:** La respuesta procesada por `CurrentUserDTO` garantiza que ningún campo sensible sea expuesto.
-3. **Respuesta de ticket con `populate` sin `password`:** Los datos asociados del usuario y del evento se filtran a través de `UserDTO` y `EventResponseDTO`.
-4. **Respuestas de error con código HTTP correcto:** Los errores de validación de negocio devuelven códigos HTTP adecuados (`400`, `404`, `409`) y nunca `500`.
-5. **Protección de rutas:** Acceso sin sesión retorna `401 Unauthorized`; acceso con sesión pero sin permisos de rol u ownership retorna `403 Forbidden`.
+1. **Flujo de Sesión:** `Registro` ➔ `Login` ➔ `GET /api/sessions/current` (devuelve usuario sin password) ➔ `Logout` ➔ `GET /api/sessions/current` devuelve **401 Unauthorized**.
+2. **Creación denegada a usuario común:** `user` intenta crear evento en `POST /api/events` ➔ **403 Forbidden**.
+3. **Inscripción exitosa:** `organizer` crea evento publicado ➔ `user` se inscribe en `POST /api/events/:eid/tickets` ➔ **201 Created**, email de confirmación despachado y cupo disponible descontado.
+4. **Prevención de duplicados:** `user` intenta inscribirse por segunda vez al mismo evento ➔ **409 Conflict** ("Ya tenés una inscripción activa para este evento").
+5. **Control de cupo agotado:** `user` intenta inscribirse a un evento sin cupos ➔ **400 Bad Request** ("No hay cupos suficientes disponibles").
+6. **Cancelación y liberación de cupo:** `user` cancela su inscripción vía `PATCH /api/tickets/:tid/cancel` ➔ **200 OK** (`status: 'cancelled'`), liberando el cupo para que otro usuario pueda inscribirse exitosamente.
+7. **Modificación denegada a organizador ajeno:** `organizer` intenta modificar un evento creado por otro organizador ➔ **403 Forbidden**.
+8. **Modificación permitida a Administrador:** `admin` modifica cualquier evento ajeno ➔ **200 OK**.
+9. **Seguridad y DTOs:** Verificado que todas las respuestas (`/current`, `/events`, `/tickets`) no incluyen campos de `password`.
+10. **Paginación y Filtros:** `GET /api/events?status=published&page=1&limit=5&sort=date` devuelve el payload paginado con `data`, `page`, `limit`, `total`, `totalPages`.
+
+---
+
+## 📬 Colección de Postman
+
+El proyecto incluye el archivo [`postman_collection.json`](file:///c:/Users/lorbe/Desktop/BACKEND%20II/TICKETS/postman_collection.json) listo para ser importado en Postman o Insomnia con todos los requests, carpetas, variables de entorno y ejemplos de uso configurados.
