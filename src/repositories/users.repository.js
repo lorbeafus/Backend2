@@ -9,11 +9,23 @@ export class UsersRepository {
         return await usersDao.getById(id);
     }
 
+    async getUserById(id) {
+        return await usersDao.getById(id);
+    }
+
     async create(userData) {
         return await usersDao.create(userData);
     }
 
+    async createUser(userData) {
+        return await usersDao.create(userData);
+    }
+
     async getByEmail(email) {
+        return await usersDao.getByEmail(email);
+    }
+
+    async findByEmail(email) {
         return await usersDao.getByEmail(email);
     }
 }

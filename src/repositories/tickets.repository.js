@@ -25,12 +25,27 @@ export class TicketsRepository {
         return await ticketsDao.getReservedQuantityByEvent(eventId);
     }
 
+    async countActiveTickets(eventId) {
+        return await ticketsDao.getReservedQuantityByEvent(eventId);
+    }
+
     async create(ticketData) {
+        return await ticketsDao.create(ticketData);
+    }
+
+    async createTicket(ticketData) {
         return await ticketsDao.create(ticketData);
     }
 
     async update(id, updateData) {
         return await ticketsDao.update(id, updateData);
+    }
+
+    async cancelTicket(id) {
+        return await ticketsDao.update(id, {
+            status: "cancelled",
+            cancelledAt: new Date(),
+        });
     }
 }
 

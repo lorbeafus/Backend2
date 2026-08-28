@@ -1,37 +1,29 @@
 import { env } from "../config/env.js";
 import { generateToken } from "../utils/jwt.js";
+import { CurrentUserDTO, UserDTO } from "../dto/index.js";
 
 export async function getSession(req, res, next) {
     try {
+        const userDto = CurrentUserDTO.getFrom(req.user);
         res.status(200).json({
             status: "success",
-            payload: {
-                id: req.user._id,
-                email: req.user.email,
-                role: req.user.role,
-            },
+            payload: userDto,
         });
     } catch (error) {
-        res.status(500).json({ error: "Internal Server Error", message: error.message });
+        next(error);
     }
 }
 
 export async function registerUser(req, res, next) {
     try {
-        const user = req.user;
+        const userDto = UserDTO.getFrom(req.user);
         res.status(201).json({
             status: "success",
             message: "Usuario registrado correctamente",
-            payload: {
-                id: user._id,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                email: user.email,
-                role: user.role,
-            },
+            payload: userDto,
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -40,7 +32,7 @@ export async function loginUser(req, res, next) {
         const user = req.user;
 
         const tokenUser = {
-            id: user._id,
+            id: user._id || user.id,
             email: user.email,
             role: user.role,
         };
@@ -59,7 +51,7 @@ export async function loginUser(req, res, next) {
             message: "Login exitoso",
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -71,6 +63,6 @@ export async function logoutUser(req, res, next) {
             message: "Logout correcto",
         });
     } catch (error) {
-        res.status(500).json({ error: "Internal Server Error", message: error.message });
+        next(error);
     }
 }

@@ -1,29 +1,60 @@
-# Plataforma de Eventos - Tickets Backend (Pre-Entrega 7)
+# Plataforma de Eventos - Tickets Backend (Pre-Entrega 8)
 
-Este proyecto es una API REST profesional estructurada por capas con Express y Mongoose para una plataforma de gestión de eventos, inscripción y venta de entradas (tickets). La arquitectura está diseñada en capas desacopladas (`Routes` ➔ `Controllers` ➔ `Services` ➔ `Repositories` ➔ `DAO` ➔ `Models`) para aislar la persistencia de la lógica de negocio, asegurando máxima mantenibilidad, escalabilidad e integridad de datos.
-
----
-
-## 🚀 Temática Elegida
-**Plataforma de Eventos, Cursos y Venta de Tickets:** Permite a los usuarios consultar eventos, registrarse e iniciar sesión de forma segura (con JWT en cookies `httpOnly`), publicar y administrar eventos según rol y propiedad, inscribirse a eventos con validación de cupos en tiempo real, consultar sus entradas y cancelarlas cuando lo requieran, con notificaciones automáticas por correo electrónico vía **Nodemailer**.
+Este proyecto es una API REST profesional estructurada según una **arquitectura en capas formal y desacoplada** con Express, MongoDB y Mongoose para una plataforma de gestión de eventos, inscripciones y venta de tickets.
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🏛️ Arquitectura Profesional por Capas (DAO, Repository, DTO)
 
-* **Node.js** (v24+)
-* **Express** (Framework HTTP y servidor web)
-* **MongoDB & Mongoose** (Base de datos NoSQL y ODM)
-* **Passport.js** (Estrategias de autenticación centralizada: `register`, `login`, `current`)
-* **Bcrypt** (Hashing seguro de contraseñas)
-* **JSON Web Token (JWT)** (Manejo de sesiones stateless mediante cookies HTTP Only)
-* **Nodemailer** (Servicio de notificaciones por correo electrónico)
-* **Dotenv** (Variables de entorno)
-* **ES Modules (ESM)** (Sintaxis nativa `import` / `export`)
+La aplicación sigue el principio de **Separación de Responsabilidades (SoC)** y el principio de **Inversión de Dependencias (DIP)** dividiendo el flujo de ejecución en 7 capas especializadas:
+
+```text
+       [ Cliente / Frontend ]
+                 │
+                 ▼  (HTTP Request)
+          ┌─────────────┐
+          │   Routes    │  -> Define endpoints, métodos HTTP y middlewares de seguridad
+          └──────┬──────┘
+                 ▼
+          ┌─────────────┐
+          │ Controllers │  -> Extrae datos (body/params/query), invoca al Service y devuelve DTOs
+          └──────┬──────┘
+                 ▼
+          ┌─────────────┐
+          │  Services   │  -> Contiene toda la Lógica de Negocio (validaciones, cupos, reglas, emails)
+          └──────┬──────┘
+                 ▼
+          ┌─────────────┐
+          │Repositories │  -> Abstracción de datos orientada al Dominio de la aplicación
+          └──────┬──────┘
+                 ▼
+          ┌─────────────┐
+          │    DAOs     │  -> Acceso directo a la persistencia (Data Access Objects con Mongoose)
+          └──────┬──────┘
+                 ▼
+          ┌─────────────┐
+          │   Models    │  -> Esquemas y colecciones de base de datos
+          └─────────────┘
+                 │
+                 ▼  (Mapeo de salida)
+          ┌─────────────┐
+          │    DTOs     │  -> Formatea y filtra datos sensibles (evita exponer passwords, hashes, etc.)
+          └─────────────┘
+```
+
+### Responsabilidad de cada Capa
+
+1. **Routes (`src/routes/`):** Define las rutas y asocia los middlewares de autenticación (`authMiddleware`), autorización (`authorizeRoles`, `authorizeEventOwnerOrAdmin`) y los controladores correspondientes. No contiene lógica de negocio.
+2. **Controllers (`src/controllers/`):** Capa delgada (*thin controllers*) encargada únicamente del transporte HTTP: recibe la petición, extrae los parámetros/cuerpo, delega la operación al `Service`, mapea el resultado mediante **DTOs** y responde al cliente. **No interactúa con modelos ni con DAOs**.
+3. **DTO - Data Transfer Objects (`src/dto/`):** Objetos de transferencia que definen qué información se expone hacia afuera y cuáles se ocultan. Protege contra la fuga accidental de datos sensibles (`password`, hashes internos, metadatos `__v`, etc.) y estandariza los contratos de la API para `User`, `Event` y `Ticket`.
+4. **Services (`src/services/`):** El corazón de la aplicación. Concentra **toda la lógica y reglas del negocio** (validaciones temporales de eventos, cálculo de cupos en tiempo real, prevención de inscripciones duplicadas, control de estados, llamadas al servicio de emails con Nodemailer). **Solo interactúa con Repositories**.
+5. **Repositories (`src/repositories/`):** Capa intermediaria de acceso a datos que ofrece métodos con semántica de dominio (`findPublishedEvents`, `countActiveTickets`, `cancelTicket`, `findActiveByUserAndEvent`). Aísla los servicios de la tecnología de persistencia utilizada.
+6. **DAO - Data Access Objects (`src/dao/`):** Objetos dedicados exclusivamente al acceso técnico a la base de datos. **Son los únicos archivos que importan y consultan los modelos de Mongoose** (`find`, `findById`, `create`, `aggregate`, etc.).
+7. **Models (`src/models/`):** Esquemas y modelos de Mongoose (`User`, `Event`, `Category`, `Ticket`) que representan la estructura de las colecciones en MongoDB.
 
 ---
 
-## 📁 Estructura de Carpetas por Capas
+## 📁 Estructura del Proyecto
 
 ```text
 TICKETS/
@@ -32,42 +63,48 @@ TICKETS/
 │   │   ├── env.js
 │   │   ├── passport.config.js
 │   │   └── mailer.config.js
-│   ├── routes/          # Rutas de Express (users, sessions, events, tickets)
+│   ├── routes/          # Rutas de Express
 │   │   ├── users.routes.js
 │   │   ├── sessions.routes.js
 │   │   ├── events.routes.js
 │   │   └── tickets.routes.js
-│   ├── controllers/     # Controladores HTTP (coordinación de request/response)
+│   ├── controllers/     # Controladores HTTP
 │   │   ├── users.controllers.js
 │   │   ├── sessions.controllers.js
 │   │   ├── events.controllers.js
 │   │   └── tickets.controllers.js
-│   ├── services/        # Lógica de negocio pura (validaciones temporales, cupos, duplicados, cancelaciones)
+│   ├── dto/             # Data Transfer Objects (UserDTO, EventResponseDTO, TicketResponseDTO)
+│   │   ├── user.dto.js
+│   │   ├── event.dto.js
+│   │   ├── ticket.dto.js
+│   │   └── index.js
+│   ├── services/        # Lógica de negocio (Services)
 │   │   ├── users.services.js
 │   │   ├── sessions.services.js
 │   │   ├── events.services.js
 │   │   └── tickets.services.js
-│   ├── repositories/    # Capa de abstracción de datos para el dominio
+│   ├── repositories/    # Repositorios del dominio
 │   │   ├── users.repository.js
 │   │   ├── events.repository.js
 │   │   └── tickets.repository.js
-│   ├── dao/             # Acceso directo a base de datos (Data Access Objects con Mongoose)
+│   ├── dao/             # Data Access Objects (Mongoose DAOs)
 │   │   ├── users.dao.js
 │   │   ├── events.dao.js
 │   │   └── tickets.dao.js
-│   ├── models/          # Esquemas Mongoose (User, Event, Category, Ticket)
+│   ├── models/          # Esquemas Mongoose
 │   │   ├── user.model.js
 │   │   ├── event.model.js
 │   │   ├── category.model.js
 │   │   └── ticket.model.js
-│   ├── middlewares/     # Middlewares de autenticación, roles y ownership
+│   ├── middlewares/     # Middlewares de autenticación, autorización y errores
 │   │   ├── auth.middleware.js
-│   │   └── passport.middleware.js
+│   │   ├── passport.middleware.js
+│   │   └── error.middleware.js
 │   ├── utils/           # Utilidades auxiliares (hash.js, jwt.js)
-│   ├── app.js           # Configuración principal de la aplicación Express
-│   └── server.js        # Inicialización del servidor (puerto y base de datos)
+│   ├── app.js           # Inicialización de Express y middlewares globales
+│   └── server.js        # Arranque del servidor HTTP y conexión a base de datos
 ├── database.js          # Conexión a MongoDB
-├── .env.example         # Plantilla de variables de entorno requeridas
+├── .env.example         # Plantilla de variables de entorno
 ├── package.json         # Dependencias y scripts
 └── README.md            # Documentación completa de la API
 ```
@@ -109,106 +146,70 @@ npm start
 
 ---
 
-## 🎟️ Modelo `Ticket` y Estados
-
-El modelo `Ticket` relaciona de manera prolija y normalizada a un **Usuario** con un **Evento**:
-
-* `user`: Referencia (`ObjectId`) al modelo `User`.
-* `event`: Referencia (`ObjectId`) al modelo `Event`.
-* `status`: Estado del ticket. Solo acepta los valores:
-  * `confirmed`: Inscripción confirmada y activa (ocupa cupo).
-  * `pending`: Inscripción pendiente de procesamiento o pago (ocupa cupo).
-  * `cancelled`: Inscripción cancelada / anulada (libera el cupo inmediatamente).
-* `quantity`: Cantidad de lugares reservados (`min: 1`, default: `1`).
-* `reservationCode`: Código único de reserva (ej: `TCK-A1B2-C3D4`).
-* `createdAt` / `updatedAt`: Marcas temporales automáticas.
-* `cancelledAt`: Fecha en que fue cancelado (default: `null`).
-
----
-
 ## 🔌 Endpoints de la API
 
-### 1. Tickets e Inscripciones
+### 1. Sesiones y Autenticación (`/api/sessions`)
 
 | Método | Ruta | Acceso | Descripción |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/api/events/:eid/tickets` | 🔒 Autenticado | Inscribirse a un evento (valida cupo, estado `published`, sin duplicados, envía email) |
-| **GET** | `/api/tickets/my-tickets` | 🔒 Autenticado | Consultar tickets propios del usuario (con `populate` de datos del evento) |
-| **GET** | `/api/events/:eid/tickets` | 🔒 Organizador dueño o `admin` | Ver los inscriptos de un evento específico |
-| **PATCH** | `/api/tickets/:tid/cancel` | 🔒 Dueño del ticket o `admin` | Cancelar un ticket activo (libera el cupo, registra `cancelledAt`, envía email) |
+| **POST** | `/api/sessions/register` | Público | Registro de usuario (hashea contraseña con bcrypt, respuesta sanitizada con `UserDTO`) |
+| **POST** | `/api/sessions/login` | Público | Autenticación de usuario (setea cookie `currentUser` con JWT firmado `httpOnly`) |
+| **GET** | `/api/sessions/current` | 🔒 Autenticado | Obtiene datos del usuario activo (retorna `CurrentUserDTO` sin password) |
+| **POST** | `/api/sessions/logout` | Público | Cierre de sesión (elimina la cookie `currentUser`) |
 
 ### 2. Eventos (`/api/events`)
 
 | Método | Ruta | Acceso | Descripción |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/events` | Público | Consulta de eventos con filtros dinámicos, ordenamiento y paginación |
-| **GET** | `/api/events/:id` | Público | Consulta del detalle de un evento por ID |
-| **POST** | `/api/events` | 🔒 `organizer`, `admin` | Crear evento (el organizador se asigna automáticamente de `req.user._id`) |
+| **GET** | `/api/events` | Público | Consulta con filtros dinámicos, ordenamiento y paginación (DTOs) |
+| **GET** | `/api/events/:id` | Público | Consulta del detalle de un evento por ID (DTO) |
+| **POST** | `/api/events` | 🔒 `organizer`, `admin` | Crear evento (el organizador se toma de `req.user._id`) |
 | **PUT** | `/api/events/:id` | 🔒 Dueño o `admin` | Modificar un evento existente |
-| **PATCH** | `/api/events/:id/status` | 🔒 Dueño o `admin` | Cambiar el estado del evento (`draft`, `published`, `cancelled`, `finished`) |
+| **PATCH** | `/api/events/:id/status` | 🔒 Dueño o `admin` | Cambiar estado del evento (`draft`, `published`, `cancelled`, `finished`) |
+| **POST** | `/api/events/:eid/tickets` | 🔒 Autenticado | Inscribirse a un evento (valida cupo, estado `published`, sin duplicados, envía email) |
+| **GET** | `/api/events/:eid/tickets` | 🔒 Organizador dueño o `admin` | Ver los inscriptos de un evento |
 
-### 3. Sesiones (`/api/sessions`)
+### 3. Tickets (`/api/tickets`)
 
 | Método | Ruta | Acceso | Descripción |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/api/sessions/register` | Público | Registro de usuario (asigna rol `user` por defecto) |
-| **POST** | `/api/sessions/login` | Público | Autenticación de usuario (genera token JWT en cookie `currentUser` HTTP Only) |
-| **GET** | `/api/sessions/current` | 🔒 Autenticado | Obtiene los datos del usuario logueado mediante token JWT |
-| **POST** | `/api/sessions/logout` | Público | Cierre de sesión (borra cookie HTTP Only) |
+| **GET** | `/api/tickets/my-tickets` | 🔒 Autenticado | Consultar tickets propios del usuario con `populate` (formateado con DTO) |
+| **PATCH** | `/api/tickets/:tid/cancel` | 🔒 Dueño del ticket o `admin` | Cancelar inscripción (libera cupo, registra `cancelledAt`, envía email) |
 
 ### 4. Usuarios (`/api/users`)
 
 | Método | Ruta | Acceso | Descripción |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/api/users` | 🔒 `admin` | Listado administrativo de usuarios |
+| **GET** | `/api/users` | 🔒 `admin` | Listado administrativo de usuarios (formateado con `UserDTO`) |
 
 ---
 
-## 📋 Reglas de Negocio y Control de Cupos (Capa Services)
+## 🛡️ Manejo Centralizado de Errores
 
-1. **Validación de Inscripción:**
-   - El evento debe existir en la base de datos (de lo contrario retorna `404 Not Found`).
-   - El evento debe estar en estado `published` (si está en `draft`, `cancelled` o `finished` retorna `400 Bad Request`).
-   - El evento no debe haber finalizado (`event.date > now`).
-   - `quantity` debe ser un número entero mayor a 0.
-   - **Control de duplicados:** Un usuario no puede tener más de una inscripción activa para el mismo evento (si ya existe un ticket no cancelado, retorna `409 Conflict`).
-   - **Cálculo de cupos disponibles:**
-     $$\text{Cupos Disponibles} = \text{Capacidad Total} - \sum \text{quantity de tickets activos (no cancelados)}$$
-     Si $\text{quantity} > \text{Cupos Disponibles}$, se rechaza la solicitud con error `400 Bad Request` indicando los cupos restantes.
-2. **Generación de Código Único:** Se genera un `reservationCode` alfanumérico único para identificar la reserva.
-3. **Notificación por Email (Nodemailer):** Tras crear el ticket, se envía un correo de confirmación de forma asíncrona con los detalles del evento y el código de reserva.
-4. **Cancelación Lógica (Soft Delete):**
-   - No se elimina físicamente el ticket; se actualiza `status: 'cancelled'` y se registra `cancelledAt: new Date()`.
-   - Solo el usuario que realizó la reserva o un `admin` pueden cancelar el ticket (de lo contrario retorna `403 Forbidden`).
-   - No se puede cancelar un ticket que ya está cancelado ni uno de un evento que ya finalizó.
-   - Al cancelar, el cupo queda disponible automáticamente para nuevas inscripciones.
+La API utiliza un middleware centralizado de errores ([`error.middleware.js`](file:///c:/Users/lorbe/Desktop/BACKEND%20II/TICKETS/src/middlewares/error.middleware.js)) que estandariza las respuestas ante cualquier fallo:
 
----
+* **400 Bad Request:** Datos inválidos, parámetros faltantes, eventos no publicados, sobrecupo o reglas temporales violadas.
+* **401 Unauthorized:** Solicitud sin token de sesión, cookie ausente o token JWT expirado/inválido.
+* **403 Forbidden:** Usuario autenticado pero sin los permisos de rol u ownership necesarios.
+* **404 Not Found:** Recurso inexistente (evento o ticket no encontrado).
+* **409 Conflict:** Conflicto de estado (usuario ya registrado con ese email o inscripción duplicada activa).
+* **500 Internal Server Error:** Fallos imprevistos del servidor.
 
-## 🔐 Matriz de Permisos por Rol
-
-| Acción | Visitante | `user` | `organizer` (dueño) | `organizer` (otro) | `admin` |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| Consultar eventos publicados (`GET /api/events`) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Inscribirse a evento (`POST /api/events/:eid/tickets`) | ❌ (401) | ✅ | ✅ | ✅ | ✅ |
-| Consultar mis tickets (`GET /api/tickets/my-tickets`) | ❌ (401) | ✅ (propios) | ✅ (propios) | ✅ (propios) | ✅ (propios) |
-| Ver inscriptos de un evento (`GET /api/events/:eid/tickets`) | ❌ (401) | ❌ (403) | ✅ | ❌ (403) | ✅ |
-| Cancelar ticket propio (`PATCH /api/tickets/:tid/cancel`) | ❌ (401) | ✅ | ✅ | ✅ | ✅ |
-| Cancelar ticket ajeno (`PATCH /api/tickets/:tid/cancel`) | ❌ (401) | ❌ (403) | ❌ (403) | ❌ (403) | ✅ |
-| Crear eventos (`POST /api/events`) | ❌ (401) | ❌ (403) | ✅ | ✅ | ✅ |
-| Modificar evento propio (`PUT /api/events/:id`) | ❌ (401) | ❌ (403) | ✅ | ❌ (403) | ✅ |
+Formato estándar de error:
+```json
+{
+  "status": "error",
+  "statusCode": 400,
+  "message": "Descripción clara del error de negocio"
+}
+```
 
 ---
 
-## 🧪 Casos a Probar (Criterios de Aceptación)
+## 🧪 Casos de Prueba (Criterios de Aceptación Pre-Entrega 8)
 
-1. **Inscripción exitosa:** Usuario autenticado hace `POST /api/events/:eid/tickets` con `quantity: 1` ➔ **201 Created**, ticket con estado `confirmed`, `reservationCode` y cupo descontado (email de confirmación despachado).
-2. **Inscripción sin sesión:** Petición sin cookie de sesión ➔ **401 Unauthorized** ("No autenticado").
-3. **Inscripción a evento inexistente:** `POST /api/events/65f1a2b3c4d5e6f7a8b9c0d1/tickets` ➔ **404 Not Found** ("Evento no encontrado").
-4. **Inscripción a evento cancelado/finalizado:** Evento con `status: 'cancelled'` o fecha pasada ➔ **400 Bad Request**.
-5. **Inscripción cuando no hay cupo suficiente:** Evento con capacidad llena ➔ **400 Bad Request** ("No hay cupos suficientes disponibles").
-6. **Inscripción duplicada activa:** Mismo usuario intenta inscribirse dos veces al mismo evento ➔ **409 Conflict** ("Ya tenés una inscripción activa para este evento").
-7. **Cancelación propia:** Usuario cancela su ticket con `PATCH /api/tickets/:tid/cancel` ➔ **200 OK**, `status: 'cancelled'`, `cancelledAt` registrado, y el cupo queda liberado para una nueva inscripción.
-8. **Cancelación de ticket ajeno como `user`:** Usuario intenta cancelar el ticket de otra persona ➔ **403 Forbidden** ("No tenés permisos para cancelar este ticket").
-9. **GET `/api/events/:eid/tickets` como `user` común:** Usuario sin rol de organizador del evento ni admin ➔ **403 Forbidden** ("No tenés permisos para ver los inscriptos de este evento").
-10. **GET `/api/events/:eid/tickets` como `organizer` de otro evento:** Organizador que no es el creador de `:eid` ➔ **403 Forbidden**.
+1. **Flujo completo:** Registro ➔ Login ➔ Crear Evento ➔ Inscribirse ➔ Consultar mis tickets ➔ Cancelar ticket (verificado de punta a punta).
+2. **Respuesta de `/current` sin `password`:** La respuesta procesada por `CurrentUserDTO` garantiza que ningún campo sensible sea expuesto.
+3. **Respuesta de ticket con `populate` sin `password`:** Los datos asociados del usuario y del evento se filtran a través de `UserDTO` y `EventResponseDTO`.
+4. **Respuestas de error con código HTTP correcto:** Los errores de validación de negocio devuelven códigos HTTP adecuados (`400`, `404`, `409`) y nunca `500`.
+5. **Protección de rutas:** Acceso sin sesión retorna `401 Unauthorized`; acceso con sesión pero sin permisos de rol u ownership retorna `403 Forbidden`.

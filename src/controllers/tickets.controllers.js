@@ -1,4 +1,5 @@
 import { ticketsService } from "../services/tickets.services.js";
+import { TicketResponseDTO } from "../dto/index.js";
 
 export async function createTicket(req, res, next) {
     try {
@@ -10,11 +11,10 @@ export async function createTicket(req, res, next) {
         res.status(201).json({
             status: "success",
             message: "Inscripción realizada correctamente",
-            payload: ticket,
+            payload: TicketResponseDTO.getFrom(ticket),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -24,11 +24,10 @@ export async function getMyTickets(req, res, next) {
 
         res.status(200).json({
             status: "success",
-            payload: tickets,
+            payload: TicketResponseDTO.getFrom(tickets),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -39,11 +38,10 @@ export async function getEventTickets(req, res, next) {
 
         res.status(200).json({
             status: "success",
-            payload: tickets,
+            payload: TicketResponseDTO.getFrom(tickets),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -55,10 +53,9 @@ export async function cancelTicket(req, res, next) {
         res.status(200).json({
             status: "success",
             message: "Inscripción cancelada correctamente",
-            payload: ticket,
+            payload: TicketResponseDTO.getFrom(ticket),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }

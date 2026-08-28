@@ -1,12 +1,15 @@
 import { eventsService } from "../services/events.services.js";
+import { EventResponseDTO } from "../dto/index.js";
 
 export async function getAll(req, res, next) {
     try {
         const result = await eventsService.getEvents(req.query);
+        const dataDto = EventResponseDTO.getFrom(result.data);
+
         res.json({
             status: "success",
-            payload: result.data,
-            data: result.data,
+            payload: dataDto,
+            data: dataDto,
             page: result.pagination.page,
             limit: result.pagination.limit,
             total: result.pagination.total,
@@ -14,8 +17,7 @@ export async function getAll(req, res, next) {
             pagination: result.pagination,
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -24,11 +26,10 @@ export async function getById(req, res, next) {
         const event = await eventsService.getEventById(req.params.id);
         res.json({
             status: "success",
-            payload: event,
+            payload: EventResponseDTO.getFrom(event),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -40,10 +41,9 @@ export async function create(req, res, next) {
         const eventLocation = location || place || "Online";
 
         if (!eventTitle || !description || !category || !date || capacity === undefined) {
-            return res.status(400).json({
-                status: "error",
-                message: "Los campos obligatorios (title, description, category, date, capacity) deben estar presentes",
-            });
+            const error = new Error("Los campos obligatorios (title, description, category, date, capacity) deben estar presentes");
+            error.statusCode = 400;
+            return next(error);
         }
 
         const newEvent = await eventsService.createEvent({
@@ -62,11 +62,10 @@ export async function create(req, res, next) {
         res.status(201).json({
             status: "success",
             message: "Evento creado correctamente",
-            payload: newEvent,
+            payload: EventResponseDTO.getFrom(newEvent),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -95,11 +94,10 @@ export async function update(req, res, next) {
         res.status(200).json({
             status: "success",
             message: "Evento modificado correctamente",
-            payload: updatedEvent,
+            payload: EventResponseDTO.getFrom(updatedEvent),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
 
@@ -107,7 +105,9 @@ export async function updateStatus(req, res, next) {
     try {
         const { status } = req.body;
         if (!status) {
-            return res.status(400).json({ status: "error", message: "El campo status es obligatorio" });
+            const error = new Error("El campo status es obligatorio");
+            error.statusCode = 400;
+            return next(error);
         }
 
         const updatedEvent = await eventsService.updateStatus(req.params.id, status);
@@ -115,11 +115,9 @@ export async function updateStatus(req, res, next) {
         res.status(200).json({
             status: "success",
             message: "Estado del evento actualizado correctamente",
-            payload: updatedEvent,
+            payload: EventResponseDTO.getFrom(updatedEvent),
         });
     } catch (error) {
-        const statusCode = error.statusCode || 500;
-        res.status(statusCode).json({ status: "error", message: error.message });
+        next(error);
     }
 }
-
