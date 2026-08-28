@@ -6,21 +6,6 @@ Esta API REST profesional consolida todas las competencias desarrolladas a lo la
 
 ---
 
-## 📊 Rúbrica de Evaluación y Cumplimiento
-
-| Criterio | Peso | Estado | Implementación en el Proyecto |
-| :--- | :---: | :---: | :--- |
-| **Continuidad e integración del proyecto** | **10%** | ✅ 100% | Evolución integral y armónica de todas las pre-entregas sin módulos aislados. |
-| **Autenticación y seguridad** | **15%** | ✅ 100% | Registro seguro, contraseñas con bcrypt (salt rounds), login con JWT en cookies `httpOnly` y ruta `/current` protegida. |
-| **Tickets, cupos e inscripciones** | **15%** | ✅ 100% | Relación explícita `User` - `Event` - `Ticket`, control de cupos en tiempo real, prevención de inscripciones duplicadas activas (`409`) y cancelaciones lógicas con liberación de cupo. |
-| **Passport, roles y autorización** | **15%** | ✅ 100% | Estrategias centralizadas (`register`, `login`, `current`), roles `user`, `organizer`, `admin`, y middlewares `401 Unauthorized` / `403 Forbidden`. |
-| **Gestión de eventos** | **15%** | ✅ 100% | CRUD completo de eventos, validaciones temporales (fechas futuras), capacidad $> 0$, estados (`draft`, `published`, `cancelled`, `finished`) y filtros dinámicos con paginación y ordenamiento. |
-| **Nodemailer y notificaciones** | **10%** | ✅ 100% | Envío automático de confirmaciones y cancelaciones de reservas mediante transporte seguro configurado 100% por variables de entorno. |
-| **Arquitectura profesional por capas** | **15%** | ✅ 100% | Estricta separación de responsabilidades: Controllers ➔ DTOs ➔ Services ➔ Repositories ➔ DAO ➔ Models. Modelos de Mongoose únicamente importados en DAOs. |
-| **Documentación y calidad de entrega** | **5%** | ✅ 100% | Repositorio limpio con `.env.example`, `.gitignore`, `package.json`, colección de Postman (`postman_collection.json`) y documentación completa. |
-
----
-
 ## 🏛️ Arquitectura Profesional por Capas
 
 El proyecto aplica los principios **SOLID** (especialmente Responsabilidad Única e Inversión de Dependencias) aislando la lógica de negocio de la tecnología de persistencia:
